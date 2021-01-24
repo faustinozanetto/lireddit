@@ -1,14 +1,15 @@
+import 'reflect-metadata';
 import express from 'express';
 import redis from 'redis';
 import session from 'express-session';
 import connectRedis from 'connect-redis';
-import 'reflect-metadata';
 import { MikroORM } from '@mikro-orm/core';
 import { ApolloServer } from 'apollo-server-express';
 import { buildSchema } from 'type-graphql';
 import { HelloResolver } from './resolvers/hello';
 import { PostResolver } from './resolvers/post';
 import { UserResolver } from './resolvers/user';
+import { MyContext } from './types';
 import { __prod__ } from './constants';
 import microConfig from './mikro-orm.config';
 
@@ -38,6 +39,7 @@ const main = async () => {
         sameSite: 'lax',
         secure: __prod__,
       },
+      saveUninitialized: false,
       secret: 'asdjnkaskjweg54x45115441s*as*',
       resave: false,
     })
@@ -49,7 +51,7 @@ const main = async () => {
       resolvers: [HelloResolver, PostResolver, UserResolver],
       validate: false,
     }),
-    context: ({ req, res }) => ({ em: orm.em, req, res }),
+    context: ({ req, res }): MyContext => ({ em: orm.em, req, res }),
   });
 
   apolloServer.applyMiddleware({ app });
