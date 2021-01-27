@@ -10,6 +10,7 @@ import {
 } from 'type-graphql';
 import { User } from '../entities/User';
 import { MyContext } from '../types';
+import { EntityManager } from '@mikro-orm/postgresql';
 import argon2 from 'argon2';
 
 @InputType()
@@ -55,12 +56,22 @@ export class UserResolver {
     @Arg('options', () => UsernamePasswordInput) options: UsernamePasswordInput,
     @Ctx() { em, req }: MyContext
   ): Promise<UserResponse> {
+    if (options.username.length === 0) {
+      return {
+        errors: [
+          {
+            field: 'username',
+            message: 'Please enter a valid username!',
+          },
+        ],
+      };
+    }
     if (options.username.length <= 2) {
       return {
         errors: [
           {
             field: 'username',
-            message: 'length must be greater than 2',
+            message: 'Length must be greater than 2',
           },
         ],
       };
@@ -70,25 +81,32 @@ export class UserResolver {
         errors: [
           {
             field: 'password',
-            message: 'length must be greater than 5',
+            message: 'Length must be greater than 5',
           },
         ],
       };
     }
     const hashedPassword = await argon2.hash(options.password);
-    const user = em.create(User, {
-      username: options.username,
-      password: hashedPassword,
-    });
+    let user;
     try {
-      await em.persistAndFlush(user);
+      const result = await (em as EntityManager)
+        .createQueryBuilder(User)
+        .getKnexQuery()
+        .insert({
+          username: options.username,
+          password: hashedPassword,
+          created_at: new Date(),
+          updated_at: new Date(),
+        })
+        .returning('*');
+      user = result[0];
     } catch (error) {
       if (error.code === '23505') {
         return {
           errors: [
             {
               field: 'username',
-              message: 'username already taken',
+              message: 'Username already taken',
             },
           ],
         };
@@ -111,7 +129,7 @@ export class UserResolver {
         errors: [
           {
             field: 'username',
-            message: "that username doesn't exist",
+            message: "That username doesn't exist",
           },
         ],
       };
@@ -122,7 +140,7 @@ export class UserResolver {
         errors: [
           {
             field: 'password',
-            message: 'incorrect password',
+            message: 'Incorrect password',
           },
         ],
       };
