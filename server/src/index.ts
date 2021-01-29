@@ -1,30 +1,34 @@
 import 'reflect-metadata';
 import express from 'express';
-import redis from 'redis';
+import Redis from 'ioredis';
 import session from 'express-session';
 import connectRedis from 'connect-redis';
 import cors from 'cors';
-import { MikroORM } from '@mikro-orm/core';
+import { createConnection } from 'typeorm';
 import { ApolloServer } from 'apollo-server-express';
 import { buildSchema } from 'type-graphql';
 import { HelloResolver } from './resolvers/hello';
 import { PostResolver } from './resolvers/post';
 import { UserResolver } from './resolvers/user';
 import { COOKIE_NAME, __prod__ } from './constants';
-import microConfig from './mikro-orm.config';
+import { Post } from './entities/Post';
+import { User } from './entities/User';
 
 const main = async () => {
-  // Connecting to database
-  const orm = await MikroORM.init(microConfig);
-  // Running migrations
-  await orm.getMigrator().up();
+  const conn = await createConnection({
+    type: 'postgres',
+    database: 'lireddit2',
+    username: 'faust',
+    password: '4532164mine',
+    logging: true,
+    synchronize: !__prod__,
+    entities: [User, Post],
+  });
 
-  // Express APP creation
   const app = express();
 
-  // Redis setup
   const RedisStore = connectRedis(session);
-  const redisClient = redis.createClient();
+  const redis = new Redis();
   app.use(
     cors({
       origin: 'http://localhost:3000',
@@ -36,17 +40,17 @@ const main = async () => {
     session({
       name: COOKIE_NAME,
       store: new RedisStore({
-        client: redisClient,
+        client: redis,
         disableTouch: true,
       }),
       cookie: {
-        maxAge: 1000 * 60 * 60 * 24 * 365 * 10,
+        maxAge: 1000 * 60 * 60 * 24 * 365 * 10, // 10 years
         httpOnly: true,
-        sameSite: 'lax',
-        secure: __prod__,
+        sameSite: 'lax', // csrf
+        secure: __prod__, // cookie only works in https
       },
       saveUninitialized: false,
-      secret: 'asdjnkaskjweg54x45115441s*as*',
+      secret: 'qowiueojwojfalksdjoqiwueo',
       resave: false,
     })
   );
@@ -57,7 +61,7 @@ const main = async () => {
       resolvers: [HelloResolver, PostResolver, UserResolver],
       validate: false,
     }),
-    context: ({ req, res }) => ({ em: orm.em, req, res }),
+    context: ({ req, res }) => ({ req, res, redis }),
   });
 
   apolloServer.applyMiddleware({
@@ -65,11 +69,11 @@ const main = async () => {
     cors: false,
   });
 
-  app.listen(4000, () =>
-    console.log(`Server listening on ${'http://localhost:4000'}`)
-  );
+  app.listen(4000, () => {
+    console.log('server started on localhost:4000');
+  });
 };
 
-main().catch((error) => {
-  console.error(error);
+main().catch((err) => {
+  console.error(err);
 });
