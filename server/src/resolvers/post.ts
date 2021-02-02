@@ -10,6 +10,7 @@ import {
   UseMiddleware,
   Int,
   FieldResolver,
+  Root,
 } from 'type-graphql';
 import { isAuth } from '../middleware/isAuth';
 import { Post } from '../entities/Post';
@@ -22,11 +23,11 @@ class PostInput {
   @Field()
   text: string;
 }
-@Resolver()
+@Resolver(Post)
 export class PostResolver {
   @FieldResolver(() => String)
-  textSnippet() {
-    
+  textSnippet(@Root() root: Post) {
+    return root.text.slice(0, 150);
   }
 
   @Query(() => [Post])
