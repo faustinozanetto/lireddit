@@ -38,8 +38,11 @@ const Login: React.FC<{}> = ({}) => {
               isClosable: true,
             });
           } else if (response.data?.login.user) {
-            // worked
-            router.push('/');
+            if (typeof router.query.next === 'string') {
+              router.push(router.query.next || '/');
+            } else {
+              router.push('/');
+            }
           }
         }}
       >

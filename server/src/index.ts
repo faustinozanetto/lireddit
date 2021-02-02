@@ -15,13 +15,13 @@ import { Post } from './entities/Post';
 import { User } from './entities/User';
 
 const main = async () => {
-  const conn = await createConnection({
+  await createConnection({
     type: 'postgres',
     database: 'lireddit2',
     username: 'faust',
     password: '4532164mine',
     logging: true,
-    synchronize: !__prod__,
+    synchronize: true,
     entities: [User, Post],
   });
 

@@ -1,22 +1,16 @@
 import React, { useState } from 'react';
+import NextLink from 'next/link';
 import { NextPage } from 'next';
 import { Wrapper } from '../../components/Wrapper';
 import { Form, Formik } from 'formik';
 import {
-  AlertDialog,
-  AlertDialogBody,
-  AlertDialogCloseButton,
-  AlertDialogContent,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogOverlay,
   Box,
   Button,
   Flex,
   Heading,
+  Link,
   Stack,
-  useDisclosure,
-  useToast,
+  Text,
 } from '@chakra-ui/react';
 import { toErrorMap } from '../../utils/toErrorMap';
 import { InputField } from '../../components/InputField';
@@ -25,13 +19,10 @@ import { useChangePasswordMutation } from '../../generated/graphql';
 import { withUrqlClient } from 'next-urql';
 import { createUrqlClient } from '../../utils/createUrqlClient';
 
-const ChangePassword: NextPage<{ token: string }> = ({ token }) => {
-  const toast = useToast();
+const ChangePassword: NextPage = () => {
   const router = useRouter();
   const [, changePassword] = useChangePasswordMutation();
   const [tokenError, setTokenError] = useState('');
-  const { isOpen, onOpen, onClose } = useDisclosure();
-  const cancelRef = React.useRef() as any;
 
   return (
     <>
@@ -41,7 +32,10 @@ const ChangePassword: NextPage<{ token: string }> = ({ token }) => {
           onSubmit={async (values, { setErrors }) => {
             const response = await changePassword({
               newPassword: values.newPassword,
-              token,
+              token:
+                typeof router.query.token === 'string'
+                  ? router.query.token
+                  : '',
             });
             if (response.data?.changePassword.errors) {
               const errorMap = toErrorMap(response.data.changePassword.errors);
@@ -50,7 +44,6 @@ const ChangePassword: NextPage<{ token: string }> = ({ token }) => {
                 setTokenError(errorMap.token);
               }
               setErrors(errorMap);
-              onClose();
             } else if (response.data?.changePassword.user) {
               // worked
               router.push('/');
@@ -61,30 +54,6 @@ const ChangePassword: NextPage<{ token: string }> = ({ token }) => {
             <Flex>
               <Box w={500} p={4} my={12} mx='auto'>
                 <Form>
-                  <AlertDialog
-                    motionPreset='slideInBottom'
-                    leastDestructiveRef={cancelRef}
-                    onClose={onClose}
-                    isOpen={isOpen}
-                    isCentered
-                  >
-                    <AlertDialogOverlay />
-                    <AlertDialogContent>
-                      <AlertDialogHeader>Change Password?</AlertDialogHeader>
-                      <AlertDialogCloseButton />
-                      <AlertDialogBody>
-                        Are you sure you want to change your password?.
-                      </AlertDialogBody>
-                      <AlertDialogFooter>
-                        <Button ref={cancelRef} onClick={onClose}>
-                          No
-                        </Button>
-                        <Button colorScheme='red' ml={3} type='submit'>
-                          Yes
-                        </Button>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
                   <Heading as='h2' p={4} textAlign='center'>
                     Change Password
                   </Heading>
@@ -94,8 +63,25 @@ const ChangePassword: NextPage<{ token: string }> = ({ token }) => {
                     label='New Password'
                     type='password'
                   />
+                  {tokenError ? (
+                    <Flex>
+                      <Box mr={2} bgColor='red'>
+                        <Text as='h5' color='red'>
+                          {tokenError}
+                        </Text>
+                      </Box>
+                      <NextLink href='/forgot-password'>
+                        <Link>click here to get a new one</Link>
+                      </NextLink>
+                    </Flex>
+                  ) : null}
                   <Stack justify='center' mt={3} isInline spacing={10}>
-                    <Button minWidth='40%' colorScheme='teal' onClick={onOpen}>
+                    <Button
+                      minWidth='40%'
+                      colorScheme='teal'
+                      type='submit'
+                      isLoading={isSubmitting}
+                    >
                       Change Password
                     </Button>
                   </Stack>
@@ -107,12 +93,6 @@ const ChangePassword: NextPage<{ token: string }> = ({ token }) => {
       </Wrapper>
     </>
   );
-};
-
-ChangePassword.getInitialProps = ({ query }) => {
-  return {
-    token: query.token as string,
-  };
 };
 
 export default withUrqlClient(createUrqlClient)(ChangePassword);

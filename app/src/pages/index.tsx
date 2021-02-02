@@ -1,17 +1,19 @@
-import { NavBar } from '../components/Navbar';
+import React from 'react';
+import NextLink from 'next/link';
 import { createUrqlClient } from '../utils/createUrqlClient';
 import { withUrqlClient } from 'next-urql';
-import { Text, Flex } from '@chakra-ui/react';
+import { Text, Flex, Link, Heading } from '@chakra-ui/react';
 import { usePostsQuery } from '../generated/graphql';
-import React from 'react';
+import { Layout } from '../components/Layout';
 
 const Index = () => {
   const [{ data }] = usePostsQuery();
   return (
-    <>
-      <NavBar />
+    <Layout>
       <Flex p={4} flexDir='column'>
-        <Text fontSize='3xl'>My Posts</Text>
+        <Heading as='h1' fontSize='6xl'>
+          My Posts
+        </Heading>
         <br />
         {!data ? (
           <div>Loading data...</div>
@@ -19,7 +21,7 @@ const Index = () => {
           data.posts.map((p) => <div key={p.id}>{p.title}</div>)
         )}
       </Flex>
-    </>
+    </Layout>
   );
 };
 

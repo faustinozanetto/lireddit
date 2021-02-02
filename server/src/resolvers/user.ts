@@ -42,16 +42,17 @@ export class UserResolver {
     @Arg('newPassword') newPassword: string,
     @Ctx() { redis, req }: MyContext
   ): Promise<UserResponse> {
-    if (newPassword.length <= 5) {
+    if (newPassword.length <= 2) {
       return {
         errors: [
           {
             field: 'newPassword',
-            message: 'Length must be greater than 5',
+            message: 'Length must be greater than 2',
           },
         ],
       };
     }
+
     const key = FORGET_PASSWORD_PREFIX + token;
     const userId = await redis.get(key);
     if (!userId) {
@@ -59,19 +60,21 @@ export class UserResolver {
         errors: [
           {
             field: 'token',
-            message: 'Expired token',
+            message: 'Token expired',
           },
         ],
       };
     }
+
     const userIdNum = parseInt(userId);
     const user = await User.findOne(userIdNum);
+
     if (!user) {
       return {
         errors: [
           {
             field: 'token',
-            message: 'User not longer exists!',
+            message: 'User no longer exists',
           },
         ],
       };
@@ -84,9 +87,9 @@ export class UserResolver {
       }
     );
 
-    // await redis.del(key);
+    await redis.del(key);
 
-    // Logging in user after password change
+    // log in user after change password
     req.session.userId = user.id;
 
     return { user };
@@ -99,11 +102,10 @@ export class UserResolver {
   ) {
     const user = await User.findOne({ where: { email } });
     if (!user) {
-      // Email not in database
+      // the email is not in the db
       return true;
     }
 
-    // Generating token
     const token = v4();
 
     await redis.set(
@@ -111,12 +113,13 @@ export class UserResolver {
       user.id,
       'ex',
       1000 * 60 * 60 * 24 * 3
-    );
+    ); // 3 days
 
-    sendEmail(
+    await sendEmail(
       email,
       `<a href="http://localhost:3000/change-password/${token}">reset password</a>`
     );
+
     return true;
   }
 
