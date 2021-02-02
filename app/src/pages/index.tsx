@@ -1,6 +1,4 @@
-import React from 'react';
-import { createUrqlClient } from '../utils/createUrqlClient';
-import { withUrqlClient } from 'next-urql';
+import React, { useState } from 'react';
 import {
   Flex,
   Heading,
@@ -9,20 +7,24 @@ import {
   Spacer,
   Box,
   Text,
-  useToast,
 } from '@chakra-ui/react';
-import { usePostsQuery } from '../generated/graphql';
 import { Layout } from '../components/Layout';
 import { Post } from '../components/Post';
+import { withUrqlClient } from 'next-urql';
+import { createUrqlClient } from '../utils/createUrqlClient';
+import { usePostsQuery } from '../generated/graphql';
 import { useRouter } from 'next/router';
 
 const Index = () => {
   const router = useRouter();
-  const toast = useToast();
+  const [variables, setVariables] = useState({
+    limit: 10,
+    cursor: '' as string,
+  });
   const [{ data, fetching }] = usePostsQuery({
     variables: {
-      limit: 10,
-      cursor: '',
+      cursor: variables.cursor,
+      limit: variables.limit,
     },
   });
 
@@ -32,13 +34,6 @@ const Index = () => {
         <h1>Error</h1>
       </div>
     );
-    // toast({
-    //   title: 'An Error Occurred!',
-    //   description: 'There has been an error while fetching the data',
-    //   duration: 9000,
-    //   isClosable: true,
-    //   status: 'error',
-    // });
   }
 
   return (
@@ -78,11 +73,17 @@ const Index = () => {
         {data ? (
           <Flex>
             <Button
-              isLoading={fetching}
               m='auto'
               my={8}
               colorScheme='blue'
               size='lg'
+              onClick={() => {
+                setVariables({
+                  limit: variables.limit,
+                  cursor: data.posts[data.posts.length - 1].createdAt,
+                });
+              }}
+              isLoading={fetching}
             >
               Load More
             </Button>
