@@ -8,6 +8,9 @@ import {
   Field,
   Ctx,
   UseMiddleware,
+  Int,
+  FieldResolver,
+  Root,
 } from 'type-graphql';
 import { isAuth } from '../middleware/isAuth';
 import { Post } from '../entities/Post';
@@ -20,11 +23,16 @@ class PostInput {
   @Field()
   text: string;
 }
-@Resolver()
+@Resolver(Post)
 export class PostResolver {
+  @FieldResolver(() => String)
+  textSnippet(@Root() root: Post) {
+    return root.text.slice(0, 150);
+  }
+
   @Query(() => [Post])
   async posts(
-    @Arg('limit') limit: number,
+    @Arg('limit', () => Int) limit: number,
     @Arg('cursor', () => String, { nullable: true }) cursor: string | null
   ): Promise<Post[]> {
     const realLimit = Math.min(50, limit);
@@ -35,7 +43,7 @@ export class PostResolver {
       .take(realLimit);
 
     if (cursor) {
-      query.where('"createdAt" > :cursor', {
+      query.where('"createdAt" < :cursor', {
         cursor: new Date(parseInt(cursor)),
       });
     }
