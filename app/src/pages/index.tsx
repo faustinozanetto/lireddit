@@ -18,14 +18,11 @@ import { useRouter } from 'next/router';
 const Index = () => {
   const router = useRouter();
   const [variables, setVariables] = useState({
-    limit: 10,
-    cursor: '' as string,
+    limit: 33,
+    cursor: null as null | string,
   });
   const [{ data, fetching }] = usePostsQuery({
-    variables: {
-      cursor: variables.cursor,
-      limit: variables.limit,
-    },
+    variables,
   });
 
   if (!fetching && !data) {
@@ -60,17 +57,15 @@ const Index = () => {
         </Flex>
         <br />
         {!data && fetching ? (
-          <>
-            <Text as='h1'>Loading data...</Text>
-          </>
+          <Text as='h1'>Loading data...</Text>
         ) : (
           <Stack spacing={8}>
-            {data!.posts.map((p) => (
+            {data!.posts.posts.map((p) => (
               <Post key={p.id} title={p.title} textSnippet={p.textSnippet} />
             ))}
           </Stack>
         )}
-        {data ? (
+        {data && data.posts.hasMore ? (
           <Flex>
             <Button
               m='auto'
@@ -80,7 +75,8 @@ const Index = () => {
               onClick={() => {
                 setVariables({
                   limit: variables.limit,
-                  cursor: data.posts[data.posts.length - 1].createdAt,
+                  cursor:
+                    data.posts.posts[data.posts.posts.length - 1].createdAt,
                 });
               }}
               isLoading={fetching}
