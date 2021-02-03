@@ -44,7 +44,7 @@ export class UserResolver {
     if (req.session.userId === user.id) {
       return user.email;
     }
-    // Current user want to see someone else´s email
+    // Current user wants to see someone else´s email
     return '';
   }
 

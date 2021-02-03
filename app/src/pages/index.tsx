@@ -18,7 +18,7 @@ import { useRouter } from 'next/router';
 const Index = () => {
   const router = useRouter();
   const [variables, setVariables] = useState({
-    limit: 33,
+    limit: 15,
     cursor: null as null | string,
   });
   const [{ data, fetching }] = usePostsQuery({
@@ -39,7 +39,7 @@ const Index = () => {
         <Flex align='center'>
           <Box p='2'>
             <Heading as='h1' fontSize='6xl'>
-              My Posts
+              Posts
             </Heading>
           </Box>
           <Spacer />
@@ -56,15 +56,30 @@ const Index = () => {
           </Box>
         </Flex>
         <br />
-        {!data && fetching ? (
-          <Text as='h1'>Loading data...</Text>
-        ) : (
-          <Stack spacing={8}>
-            {data!.posts.posts.map((p) => (
-              <Post key={p.id} title={p.title} textSnippet={p.textSnippet} />
-            ))}
-          </Stack>
-        )}
+        <Flex p={4}>
+          {!data && fetching ? (
+            <Text as='h1'>Loading data...</Text>
+          ) : (
+            <Stack spacing={8}>
+              {data!.posts.posts.map((p) => {
+                if (p) {
+                  return (
+                    <Post
+                      key={p.id}
+                      title={p.title}
+                      author={p.creator.username}
+                      textSnippet={p.textSnippet}
+                    />
+                  );
+                } else {
+                  return (
+                    <Post title='Error' author='Error' textSnippet='Error' />
+                  );
+                }
+              })}
+            </Stack>
+          )}
+        </Flex>
         {data && data.posts.hasMore ? (
           <Flex>
             <Button

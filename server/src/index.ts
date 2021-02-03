@@ -13,6 +13,7 @@ import { UserResolver } from './resolvers/user';
 import { COOKIE_NAME, __prod__ } from './constants';
 import { Post } from './entities/Post';
 import { User } from './entities/User';
+import { Updoot } from './entities/Updoot';
 import path from 'path';
 
 const main = async () => {
@@ -24,7 +25,7 @@ const main = async () => {
     logging: true,
     synchronize: true,
     migrations: [path.join(__dirname, './migrations/*')],
-    entities: [User, Post],
+    entities: [User, Post, Updoot],
   });
 
   await conn.runMigrations();
