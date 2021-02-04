@@ -6,10 +6,10 @@ import {
   Button,
   Spacer,
   Box,
-  Text,
+  Spinner,
 } from '@chakra-ui/react';
 import { Layout } from '../components/Layout';
-import { PostTemplate } from '../components/PostTemplate';
+import { PostSnippet } from '../components/PostSnippet';
 import { withUrqlClient } from 'next-urql';
 import { createUrqlClient } from '../utils/createUrqlClient';
 import { usePostsQuery } from '../generated/graphql';
@@ -27,9 +27,11 @@ const Index = () => {
 
   if (!fetching && !data) {
     return (
-      <div>
-        <h1>Error</h1>
-      </div>
+      <Layout>
+        <Heading as='h2' fontSize='1xl'>
+          Error
+        </Heading>
+      </Layout>
     );
   }
 
@@ -55,34 +57,20 @@ const Index = () => {
             </Button>
           </Box>
         </Flex>
-        <br />
         <Flex p={4}>
           {!data && fetching ? (
-            <Text as='h1'>Loading data...</Text>
+            <Box>
+              <Spinner />
+            </Box>
           ) : (
             <Stack spacing={8}>
-              {data!.posts.posts.map((p) => {
-                if (p) {
-                  return <PostTemplate key={p.id} post={p} />;
-                } else {
-                  return (
-                    <PostTemplate
-                      post={{
-                        id: 0,
-                        title: 'Error',
-                        textSnippet: 'Error',
-                        points: 0,
-                        createdAt: '',
-                        updatedAt: '',
-                        creator: {
-                          id: 0,
-                          username: 'Error',
-                        },
-                      }}
-                    />
-                  );
-                }
-              })}
+              {data!.posts.posts.map((p) =>
+                !p ? null : (
+                  <>
+                    <PostSnippet key={p.id} post={p} />{' '}
+                  </>
+                )
+              )}
             </Stack>
           )}
         </Flex>

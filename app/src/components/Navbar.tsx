@@ -7,16 +7,17 @@ import {
   Button,
   Heading,
   Spacer,
-  Text,
+  HStack,
 } from '@chakra-ui/react';
 import { useLogoutMutation, useMeQuery } from '../generated/graphql';
-import { isServer } from '../utils/isServer';
+import { useRouter } from 'next/router';
 
 interface NavBarProps {}
 
 export const NavBar: React.FC<NavBarProps> = ({}) => {
   const [{ fetching: logoutFetching }, logout] = useLogoutMutation();
-  const [{ data, fetching }] = useMeQuery({ pause: isServer() });
+  const [{ data, fetching }] = useMeQuery();
+  const router = useRouter();
   let body = null;
 
   // Data is loading
@@ -25,62 +26,72 @@ export const NavBar: React.FC<NavBarProps> = ({}) => {
     //User not logged in
   } else if (!data?.me) {
     body = (
-      <>
-        <NextLink href='/login'>
-          <Link color='white' mr={2}>
-            Login
-          </Link>
-        </NextLink>
-        <NextLink href='/register'>
-          <Link color='white' mr={2}>
-            Register
-          </Link>
-        </NextLink>
-      </>
+      <Flex>
+        <Box d='flex'>
+          <HStack justifyContent='center' alignItems='center'>
+            <Button
+              colorScheme='teal'
+              onClick={() => {
+                router.push('/login');
+              }}
+            >
+              Login
+            </Button>
+            <Spacer />
+            <Button
+              colorScheme='linkedin'
+              onClick={() => {
+                router.push('/register');
+              }}
+            >
+              Register
+            </Button>
+          </HStack>
+        </Box>
+      </Flex>
     );
     // User is logged
   } else {
     body = (
       <Flex>
-        <Heading as='h3' fontSize='lg' color='black' mr={2}>
-          Hello {data.me.username}!
-        </Heading>
-        <Button
-          variant='link'
-          colorScheme='white'
-          isLoading={logoutFetching}
-          onClick={() => {
-            logout();
-          }}
-        >
-          Logout
-        </Button>
+        <Box d='flex'>
+          <HStack justifyContent='center' alignItems='center'>
+            <Heading as='h3' fontSize='lg' color='white' mr={2}>
+              {data.me.username}
+            </Heading>
+            <Button
+              colorScheme='blue'
+              isLoading={logoutFetching}
+              onClick={() => {
+                logout();
+              }}
+            >
+              Logout
+            </Button>
+          </HStack>
+        </Box>
       </Flex>
     );
   }
 
-  // <Flex zIndex={1} position='sticky' top={0}>
-  //   <Box w='100%' h='75px' bgGradient='linear(to-l, #7928CA, #FF0080)'>
-  //     {body}
-  //   </Box>
-  // </Flex>
   return (
-    <Box>
-      <Flex
-        zIndex={1}
-        position='sticky'
-        top={0}
-        p={4}
-        bgGradient='linear(to-l, #7928CA, #FF0080)'
-      >
+    <Flex
+      zIndex={1}
+      position='sticky'
+      top={0}
+      p={4}
+      align='center'
+      bgGradient='linear(to-l, #7928CA, #FF0080)'
+    >
+      <Flex flex={1} m='auto' align='center' maxWidth={800}>
         <Box>
-          <Heading as='h1' size='lg' letterSpacing={'-.1rem'}>
+          <Heading as='h1' size='2xl' color='white'>
             Li Reddit
           </Heading>
         </Box>
         <Spacer />
-        <Box ml={'auto'}>{body}</Box>
+        <Box ml='auto'>{body}</Box>
       </Flex>
-    </Box>
+    </Flex>
   );
 };
