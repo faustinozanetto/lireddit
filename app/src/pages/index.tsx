@@ -9,7 +9,7 @@ import {
   Text,
 } from '@chakra-ui/react';
 import { Layout } from '../components/Layout';
-import { Post } from '../components/Post';
+import { PostTemplate } from '../components/PostTemplate';
 import { withUrqlClient } from 'next-urql';
 import { createUrqlClient } from '../utils/createUrqlClient';
 import { usePostsQuery } from '../generated/graphql';
@@ -63,17 +63,23 @@ const Index = () => {
             <Stack spacing={8}>
               {data!.posts.posts.map((p) => {
                 if (p) {
-                  return (
-                    <Post
-                      key={p.id}
-                      title={p.title}
-                      author={p.creator.username}
-                      textSnippet={p.textSnippet}
-                    />
-                  );
+                  return <PostTemplate key={p.id} post={p} />;
                 } else {
                   return (
-                    <Post title='Error' author='Error' textSnippet='Error' />
+                    <PostTemplate
+                      post={{
+                        id: 0,
+                        title: 'Error',
+                        textSnippet: 'Error',
+                        points: 0,
+                        createdAt: '',
+                        updatedAt: '',
+                        creator: {
+                          id: 0,
+                          username: 'Error',
+                        },
+                      }}
+                    />
                   );
                 }
               })}
