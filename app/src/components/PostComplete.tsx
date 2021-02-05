@@ -8,9 +8,12 @@ import {
   Spacer,
   Stack,
   Text,
+  VStack,
 } from '@chakra-ui/react';
 import { PostQuery } from '../generated/graphql';
 import { useRouter } from 'next/router';
+import { DeletePostButton } from './DeletePostButton';
+import { EditPostButton } from './EditPostButton';
 
 interface PostProps {
   post: PostQuery['post'];
@@ -29,13 +32,31 @@ export const PostComplete: React.FC<PostProps> = ({ post }) => {
             <HStack>
               <Heading fontSize='5xl'>{post?.title}</Heading>
               <Spacer />
-              <Button
-                onClick={() => {
-                  router.push('/');
-                }}
-              >
-                Go Back
-              </Button>
+              <Box d='flex'>
+                <HStack justifyContent='center' alignItems='center'>
+                  <DeletePostButton
+                    //@ts-ignore
+                    id={post?.id}
+                    //@ts-ignore
+                    creatorId={post?.creator?.id}
+                  />
+                  <Spacer />
+                  <EditPostButton
+                    //@ts-ignore
+                    id={post?.id}
+                    //@ts-ignore
+                    creatorId={post?.creator?.id}
+                  />
+                  <Spacer />
+                  <Button
+                    onClick={() => {
+                      router.push('/');
+                    }}
+                  >
+                    Go Back
+                  </Button>
+                </HStack>
+              </Box>
             </HStack>
             <Text fontSize='lg' ml={1}>
               by {post?.creator.username} on

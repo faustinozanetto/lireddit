@@ -3,11 +3,11 @@ import NextLink from 'next/link';
 import {
   Flex,
   Box,
-  Link,
   Button,
   Heading,
   Spacer,
   HStack,
+  Link,
 } from '@chakra-ui/react';
 import { useLogoutMutation, useMeQuery } from '../generated/graphql';
 import { useRouter } from 'next/router';
@@ -32,7 +32,7 @@ export const NavBar: React.FC<NavBarProps> = ({}) => {
             <Button
               colorScheme='teal'
               onClick={() => {
-                router.push('/login');
+                router.push('/user/login');
               }}
             >
               Login
@@ -41,7 +41,7 @@ export const NavBar: React.FC<NavBarProps> = ({}) => {
             <Button
               colorScheme='linkedin'
               onClick={() => {
-                router.push('/register');
+                router.push('/user/register');
               }}
             >
               Register
@@ -85,9 +85,16 @@ export const NavBar: React.FC<NavBarProps> = ({}) => {
     >
       <Flex flex={1} m='auto' align='center' maxWidth={800}>
         <Box>
-          <Heading as='h1' size='2xl' color='white'>
-            Li Reddit
-          </Heading>
+          <Button
+            variant='link'
+            onClick={() => {
+              router.push('/');
+            }}
+          >
+            <Heading size='2xl' color='white'>
+              Li Reddit
+            </Heading>
+          </Button>
         </Box>
         <Spacer />
         <Box ml='auto'>{body}</Box>

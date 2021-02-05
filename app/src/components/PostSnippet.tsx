@@ -8,21 +8,54 @@ import {
   Spacer,
   Stack,
   Text,
+  toast,
+  useToast,
+  VStack,
 } from '@chakra-ui/react';
 import NextLink from 'next/link';
 import { ChevronDownIcon, ChevronUpIcon } from '@chakra-ui/icons';
-import { PostSnippetFragment, useVoteMutation } from '../generated/graphql';
+import {
+  PostSnippetFragment,
+  useMeQuery,
+  useVoteMutation,
+} from '../generated/graphql';
 import { DeletePostButton } from './DeletePostButton';
+import { EditPostButton } from './EditPostButton';
 
-interface PostProps {
+type PostProps = {
   post: PostSnippetFragment;
-}
+};
 
 export const PostSnippet: React.FC<PostProps> = ({ post }) => {
   const [loadingState, setLoadingState] = useState<
     'updoot-loading' | 'downdoot-loading' | 'not-loading'
   >('not-loading');
   const [, vote] = useVoteMutation();
+  const [{ data: userData }] = useMeQuery();
+  const toast = useToast();
+
+  const postVote = async (value: number) => {
+    if (post.voteStatus === 1) {
+      return;
+    }
+    setLoadingState('updoot-loading');
+    if (userData?.me) {
+      await vote({
+        postId: post.id,
+        value,
+      });
+    } else {
+      toast({
+        title: 'An Error Ocurred!',
+        description: 'You must be logged in to vote posts!',
+        status: 'error',
+        isClosable: true,
+        duration: 6000,
+      });
+    }
+    setLoadingState('not-loading');
+  };
+
   return (
     <>
       <Box p={5} rounded='md' bgColor='white' boxShadow='2xl'>
@@ -36,15 +69,7 @@ export const PostSnippet: React.FC<PostProps> = ({ post }) => {
                 isLoading={loadingState === 'updoot-loading'}
                 isDisabled={post.voteStatus === 1}
                 onClick={async () => {
-                  if (post.voteStatus === 1) {
-                    return;
-                  }
-                  setLoadingState('updoot-loading');
-                  await vote({
-                    postId: post.id,
-                    value: 1,
-                  });
-                  setLoadingState('not-loading');
+                  postVote(1);
                 }}
               />
               <Heading fontSize='md' textAlign='center' mb={1}>
@@ -57,15 +82,7 @@ export const PostSnippet: React.FC<PostProps> = ({ post }) => {
                 isLoading={loadingState === 'downdoot-loading'}
                 isDisabled={post.voteStatus === -1}
                 onClick={async () => {
-                  if (post.voteStatus === -1) {
-                    return;
-                  }
-                  setLoadingState('downdoot-loading');
-                  await vote({
-                    postId: post.id,
-                    value: -1,
-                  });
-                  setLoadingState('not-loading');
+                  postVote(-1);
                 }}
               />
             </Stack>
@@ -83,8 +100,16 @@ export const PostSnippet: React.FC<PostProps> = ({ post }) => {
             <Text mt={4}>{post.textSnippet}</Text>
           </Box>
           <Spacer />
-          <Box>
-            <DeletePostButton post={post} />
+          <Box d='flex'>
+            <VStack justifyContent='center' alignItems='center'>
+              <DeletePostButton
+                id={post?.id}
+                creatorId={post?.creator?.id}
+                title={post.title}
+              />
+              <Spacer />
+              <EditPostButton id={post?.id} creatorId={post?.creator?.id} />
+            </VStack>
           </Box>
         </Flex>
       </Box>

@@ -14,6 +14,7 @@ import { withUrqlClient } from 'next-urql';
 import { createUrqlClient } from '../utils/createUrqlClient';
 import { usePostsQuery } from '../generated/graphql';
 import { useRouter } from 'next/router';
+import { CreatePostButton } from '../components/CreatePostButton';
 
 const Index = () => {
   const router = useRouter();
@@ -45,17 +46,7 @@ const Index = () => {
             </Heading>
           </Box>
           <Spacer />
-          <Box>
-            <Button
-              colorScheme='green'
-              size='lg'
-              onClick={() => {
-                router.push('/create-post');
-              }}
-            >
-              Create Post
-            </Button>
-          </Box>
+          <CreatePostButton />
         </Flex>
         <Flex p={4}>
           {!data && fetching ? (
@@ -67,7 +58,7 @@ const Index = () => {
               {data!.posts.posts.map((p) =>
                 !p ? null : (
                   <>
-                    <PostSnippet key={p.id} post={p} />{' '}
+                    <PostSnippet key={p.id} post={p} />
                   </>
                 )
               )}

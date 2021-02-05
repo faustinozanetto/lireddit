@@ -1,22 +1,13 @@
 import React from 'react';
-import { useRouter } from 'next/router';
 import { withUrqlClient } from 'next-urql';
 import { createUrqlClient } from '../../utils/createUrqlClient';
-import { usePostQuery } from '../../generated/graphql';
-import { Box } from '@chakra-ui/react';
+import { Box, Heading } from '@chakra-ui/react';
 import { Layout } from '../../components/Layout';
 import { PostComplete } from '../../components/PostComplete';
+import { useGetPostFromUrl } from '../../utils/useGetPostFromUrl';
 
 const Post = ({}) => {
-  const router = useRouter();
-  const intId =
-    typeof router.query.id === 'string' ? parseInt(router.query.id) : -1;
-  const [{ data, error, fetching }] = usePostQuery({
-    pause: intId === -1,
-    variables: {
-      id: intId,
-    },
-  });
+  const [{ data, error, fetching }] = useGetPostFromUrl();
 
   if (fetching) {
     return (
@@ -32,6 +23,16 @@ const Post = ({}) => {
         <h1>{error.message}</h1>
       </Layout>
     );
+  }
+
+  if (!data?.post) {
+    if (error) {
+      return (
+        <Layout>
+          <Heading>Could not find post!</Heading>
+        </Layout>
+      );
+    }
   }
 
   return (

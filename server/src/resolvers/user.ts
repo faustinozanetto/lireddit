@@ -129,7 +129,7 @@ export class UserResolver {
 
     await sendEmail(
       email,
-      `<a href="http://localhost:3000/change-password/${token}">reset password</a>`
+      `<a href="http://localhost:3000/user/change-password/${token}">reset password</a>`
     );
 
     return true;
@@ -168,8 +168,7 @@ export class UserResolver {
         })
         .returning('*')
         .execute();
-      console.log(result);
-      user = result.raw;
+      user = result.raw[0];
     } catch (err) {
       //|| err.detail.includes("already exists")) {
       // duplicate username error
@@ -239,7 +238,6 @@ export class UserResolver {
       req.session.destroy((err) => {
         res.clearCookie(COOKIE_NAME);
         if (err) {
-          console.log(err);
           resolve(false);
           return;
         }

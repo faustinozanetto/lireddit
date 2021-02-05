@@ -1,17 +1,28 @@
 import { DeleteIcon } from '@chakra-ui/icons';
-import { Box, IconButton } from '@chakra-ui/react';
+import { Box, IconButton, useDisclosure } from '@chakra-ui/react';
 import React from 'react';
-import {
-  PostSnippetFragment,
-  useDeletePostMutation,
-} from '../generated/graphql';
+import { useDeletePostMutation, useMeQuery } from '../generated/graphql';
+import { DeletePostDialog } from './DeletePostDialog';
 
-interface DeletePostProps {
-  post: PostSnippetFragment;
-}
+type DeletePostProps = {
+  id: number;
+  creatorId: number;
+  title: string;
+};
 
-export const DeletePostButton: React.FC<DeletePostProps> = ({ post }) => {
+export const DeletePostButton: React.FC<DeletePostProps> = ({
+  id,
+  creatorId,
+  title,
+}) => {
+  const { isOpen, onOpen, onClose } = useDisclosure();
   const [, deletePost] = useDeletePostMutation();
+  const [{ data }] = useMeQuery();
+
+  if (data?.me?.id !== creatorId || data?.me?.id === undefined) {
+    return null;
+  }
+
   return (
     <>
       <Box>
@@ -20,9 +31,18 @@ export const DeletePostButton: React.FC<DeletePostProps> = ({ post }) => {
           aria-label='Delete Post'
           colorScheme='red'
           onClick={() => {
-            deletePost({ id: post?.id });
+            //@ts-ignore
+            onOpen();
           }}
-        ></IconButton>
+        />
+        <DeletePostDialog
+          isOpen={isOpen}
+          onClose={onClose}
+          postName={title}
+          onYes={() => {
+            deletePost({ id });
+          }}
+        />
       </Box>
     </>
   );
